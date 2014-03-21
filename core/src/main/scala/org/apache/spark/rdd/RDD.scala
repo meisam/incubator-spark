@@ -1100,4 +1100,8 @@ abstract class RDD[T: ClassTag](
     new JavaRDD(this)(elementClassTag)
   }
 
+  def toColumnarRDD() : ColumnarRDD[T] = {
+    new ColumnarRDD[T](this)
+  }
+
 }
