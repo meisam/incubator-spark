@@ -191,7 +191,57 @@ class KryoSerializerSuite extends FunSuite with SharedSparkContext {
         .fold(new ClassWithoutNoArgConstructor(10))((t1, t2) => new ClassWithoutNoArgConstructor(t1.x + t2.x)).x
     assert(10 + control.sum === result)
   }
+
+  test("Meisam's tests for serialization") {
+    val ser = new KryoSerializer(conf).newInstance()
+    def check[T](t: T) {
+      val deserilizedValue: T = ser.deserialize[T](ser.serialize(t))
+      val size1 = ser.serialize(t).array().length
+      val size2 = ser.serialize(deserilizedValue).array().length
+      println("%d is the serialized size for [%s] %s".format(size1, (if (t == null) "null" else t.getClass), t))
+      println("%d is the serialized size for [%s] %s".format(size2, (if (t == null) "null" else deserilizedValue.getClass), deserilizedValue))
+      println("")
+      assert(deserilizedValue === t)
+      // Check that very long ranges don't get written one element at a time
+      //      assert(ser.serialize(t).limit < 100)
+    }
+
+    check(1)
+    check((1, 2))
+    check((1, 2.0))
+
+    check((1, 2))
+    check(Tuple2(1, 2))
+    check((1, 2, 3))
+    check((1, 2, 3, 4))
+    check((1, 2, 3, 4, 5))
+    check((1, 2, 3, 4, 5, 6))
+    check(("A b c d", 10))
+
+    check((1 to 10).map(x => (x, 2 * x)))
+    check((1 to 20).map(x => (x, 2 * x)))
+    check((1 to 100).map(x => (x, 2 * x)))
+    check((1 to 200).map(x => (x, 2 * x)))
+    check((1 to 1000).map(x => (x, 2 * x)))
+    check((1 to 2000).map(x => (x, 2 * x)))
+
+    check((1 to 10000).map(x => (x, 2 * x, 3 * x)))
+    check((1 to 10000).map(x => (x, 100 * x)))
+    check((1 to 10000).map(x => (x, 2 * x)))
+    // This one Buffer overflows
+    // check((1 to 1000000).map(x => (x, 2*x)) )
+
+    val n = 1000
+    check((1 to n).map(x => (x, (100 * x).toString)))
+    val x: (Array[Int], Array[String]) = ((1 to n).toArray, (1 to n).map(x => (100 * x).toString).toArray)
+    check(x)
+  }
 }
+
+//case class X extends Tuple2[Array[Int], Array[String]] (_1:Array[Int], _2:Array[String]){
+//  override def toString() = "(" + _1.mkString() + "," + _2.mkString() + ")"
+//
+//}
 
 object KryoTest {
   case class CaseClass(i: Int, s: String) {}
