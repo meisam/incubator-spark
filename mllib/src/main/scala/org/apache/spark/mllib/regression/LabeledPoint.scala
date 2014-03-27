@@ -24,6 +24,20 @@ package org.apache.spark.mllib.regression
  * @param features List of features for this data point.
  */
 case class LabeledPoint(label: Double, features: Array[Double]) {
+  def + (that : LabeledPoint): LabeledPoint ={
+    if (this.features.length != that.features.length)
+      throw new IllegalArgumentException("Both LabeledPoints should have the same number of features.")
+    val sum = this.features.zip(that.features).map(x => x._1 + x._2)
+    new LabeledPoint(this.label, sum)
+  }
+
+  def - (that : LabeledPoint): LabeledPoint ={
+    if (this.features.length != that.features.length)
+      throw new IllegalArgumentException("Both LabeledPoints should have the same number of features.")
+    val sum = this.features.zip(that.features).map(x => x._1 - x._2)
+    new LabeledPoint(this.label, sum)
+  }
+
   override def toString: String = {
     "LabeledPoint(%s, %s)".format(label, features.mkString("[", ", ", "]"))
   }
