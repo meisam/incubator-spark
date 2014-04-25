@@ -127,7 +127,7 @@ public final class JavaKMeans {
       System.out.println("Finished iteration (delta = " + tempDist + ")");
     } while (tempDist > convergeDist);
 
-    System.out.println("Final centers:");
+    System.out.println("Final points:");
     for (Vector c : centroids) {
       System.out.println(c);
     }

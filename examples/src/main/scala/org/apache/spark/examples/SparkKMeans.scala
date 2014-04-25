@@ -82,7 +82,7 @@ object SparkKMeans {
       println("Finished iteration (delta = " + tempDist + ")")
     }
 
-    println("Final centers:")
+    println("Final points:")
     kPoints.foreach(println)
     System.exit(0)
   }

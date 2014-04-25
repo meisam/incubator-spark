@@ -64,7 +64,7 @@ class KMeans private (
 
   /**
    * Set the initialization algorithm. This can be either "random" to choose random points as
-   * initial cluster centers, or "k-means||" to use a parallel variant of k-means++
+   * initial cluster points, or "k-means||" to use a parallel variant of k-means++
    * (Bahmani et al., Scalable K-Means++, VLDB 2012). Default: k-means||.
    */
   def setInitializationMode(initializationMode: String): KMeans = {
@@ -101,8 +101,8 @@ class KMeans private (
   }
 
   /**
-   * Set the distance threshold within which we've consider centers to have converged.
-   * If all centers move less than this Euclidean distance, we stop iterating one run.
+   * Set the distance threshold within which we've consider points to have converged.
+   * If all points move less than this Euclidean distance, we stop iterating one run.
    */
   def setEpsilon(epsilon: Double): KMeans = {
     this.epsilon = epsilon
@@ -162,7 +162,7 @@ class KMeans private (
         contribs.iterator
       }.reduceByKey(mergeContribs).collectAsMap()
 
-      // Update the cluster centers and costs for each active run
+      // Update the cluster points and costs for each active run
       for ((run, i) <- activeRuns.zipWithIndex) {
         var changed = false
         for (j <- 0 until k) {
@@ -191,19 +191,19 @@ class KMeans private (
   }
 
   /**
-   * Initialize `runs` sets of cluster centers at random.
+   * Initialize `runs` sets of cluster points at random.
    */
   private def initRandom(data: RDD[Array[Double]]): Array[ClusterCenters] = {
-    // Sample all the cluster centers in one pass to avoid repeated scans
+    // Sample all the cluster points in one pass to avoid repeated scans
     val sample = data.takeSample(true, runs * k, new XORShiftRandom().nextInt()).toSeq
     Array.tabulate(runs)(r => sample.slice(r * k, (r + 1) * k).toArray)
   }
 
   /**
-   * Initialize `runs` sets of cluster centers using the k-means|| algorithm by Bahmani et al.
+   * Initialize `runs` sets of cluster points using the k-means|| algorithm by Bahmani et al.
    * (Bahmani et al., Scalable K-Means++, VLDB 2012). This is a variant of k-means++ that tries
-   * to find with dissimilar cluster centers by starting with a random center and then doing
-   * passes where more centers are chosen with probability proportional to their squared distance
+   * to find with dissimilar cluster points by starting with a random center and then doing
+   * passes where more points are chosen with probability proportional to their squared distance
    * to the current cluster set. It results in a provable approximation to an optimal clustering.
    *
    * The original paper can be found at http://theory.stanford.edu/~sergei/papers/vldb12-kmpar.pdf.
@@ -215,7 +215,7 @@ class KMeans private (
     val centers = Array.tabulate(runs)(r => ArrayBuffer(sample(r)))
 
     // On each step, sample 2 * k points on average for each run with probability proportional
-    // to their squared distance from that run's current centers
+    // to their squared distance from that run's current points
     for (step <- 0 until initializationSteps) {
       val centerArrays = centers.map(_.toArray)
       val sumCosts = data.flatMap { point =>
@@ -234,9 +234,9 @@ class KMeans private (
       }
     }
 
-    // Finally, we might have a set of more than k candidate centers for each run; weigh each
+    // Finally, we might have a set of more than k candidate points for each run; weigh each
     // candidate by the number of points in the dataset mapping to it and run a local k-means++
-    // on the weighted centers to pick just k of them
+    // on the weighted points to pick just k of them
     val centerArrays = centers.map(_.toArray)
     val weightMap = data.flatMap { p =>
       for (r <- 0 until runs) yield ((r, KMeans.findClosest(centerArrays(r), p)._1), 1.0)
@@ -284,7 +284,7 @@ object KMeans {
   }
 
   /**
-   * Return the index of the closest point in `centers` to `point`, as well as its distance.
+   * Return the index of the closest point in `points` to `point`, as well as its distance.
    */
   private[mllib] def findClosest(centers: Array[Array[Double]], point: Array[Double])
     : (Int, Double) =
@@ -302,7 +302,7 @@ object KMeans {
   }
 
   /**
-   * Return the K-means cost of a given point against the given cluster centers.
+   * Return the K-means cost of a given point against the given cluster points.
    */
   private[mllib] def pointCost(centers: Array[Array[Double]], point: Array[Double]): Double = {
     var bestDistance = Double.PositiveInfinity
@@ -326,7 +326,7 @@ object KMeans {
     val data = sc.textFile(inputFile).map(line => line.split(' ').map(_.toDouble)).cache()
     val model = KMeans.train(data, k, iters, runs)
     val cost = model.computeCost(data)
-    println("Cluster centers:")
+    println("Cluster points:")
     for (c <- model.clusterCenters) {
       println("  " + c.mkString(" "))
     }

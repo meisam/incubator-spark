@@ -42,10 +42,10 @@ private[mllib] object LocalKMeans {
     val dimensions = points(0).length
     val centers = new Array[Array[Double]](k)
 
-    // Initialize centers by sampling using the k-means++ procedure
+    // Initialize points by sampling using the k-means++ procedure
     centers(0) = pickWeighted(rand, points, weights)
     for (i <- 1 until k) {
-      // Pick the next center with a probability proportional to cost under current centers
+      // Pick the next center with a probability proportional to cost under current points
       val curCenters = centers.slice(0, i)
       val sum = points.zip(weights).map { case (p, w) =>
         w * KMeans.pointCost(curCenters, p)
@@ -77,7 +77,7 @@ private[mllib] object LocalKMeans {
           oldClosest(i) = index
         }
       }
-      // Update centers
+      // Update points
       for (i <- 0 until k) {
         if (counts(i) == 0.0) {
           // Assign center to a random point

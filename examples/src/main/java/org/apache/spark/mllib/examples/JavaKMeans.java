@@ -71,7 +71,7 @@ public final class JavaKMeans {
 
     KMeansModel model = KMeans.train(points.rdd(), k, iterations, runs);
 
-    System.out.println("Cluster centers:");
+    System.out.println("Cluster points:");
     for (double[] center : model.clusterCenters()) {
       System.out.println(" " + Arrays.toString(center));
     }

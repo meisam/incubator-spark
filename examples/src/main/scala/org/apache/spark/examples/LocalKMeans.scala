@@ -73,7 +73,7 @@ object LocalKMeans {
       kPoints.put(i, iter.next())
     }
 
-    println("Initial centers: " + kPoints)
+    println("Initial points: " + kPoints)
 
     while(tempDist > convergeDist) {
       var closest = data.map (p => (closestPoint(p, kPoints), (p, 1)))
@@ -98,6 +98,6 @@ object LocalKMeans {
       }
     }
 
-    println("Final centers: " + kPoints)
+    println("Final points: " + kPoints)
   }
 }

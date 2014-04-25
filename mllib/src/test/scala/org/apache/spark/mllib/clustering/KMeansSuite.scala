@@ -18,10 +18,10 @@
 package org.apache.spark.mllib.clustering
 
 
-import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuite
 
 import org.apache.spark.mllib.util.LocalSparkContext
+import org.apache.spark.rdd.RDD
 
 class KMeansSuite extends FunSuite with LocalSparkContext {
 
@@ -37,7 +37,9 @@ class KMeansSuite extends FunSuite with LocalSparkContext {
 
   // L1 distance between two points
   def distance1(v1: Array[Double], v2: Array[Double]): Double = {
-    v1.zip(v2).map{ case (a, b) => math.abs(a-b) }.max
+    v1.zip(v2).map {
+      case (a, b) => math.abs(a - b)
+    }.max
   }
 
   // Assert that two vectors are equal within tolerance EPSILON
@@ -75,26 +77,26 @@ class KMeansSuite extends FunSuite with LocalSparkContext {
     // No matter how many runs or iterations we use, we should get one cluster,
     // centered at the mean of the points
 
-    var model = KMeans.train(data, k=1, maxIterations=1)
+    var model = KMeans.train(data, k = 1, maxIterations = 1)
     assertSetsEqual(model.clusterCenters, Array(Array(1.0, 3.0, 4.0)))
 
-    model = KMeans.train(data, k=1, maxIterations=2)
+    model = KMeans.train(data, k = 1, maxIterations = 2)
     assertSetsEqual(model.clusterCenters, Array(Array(1.0, 3.0, 4.0)))
 
-    model = KMeans.train(data, k=1, maxIterations=5)
+    model = KMeans.train(data, k = 1, maxIterations = 5)
     assertSetsEqual(model.clusterCenters, Array(Array(1.0, 3.0, 4.0)))
 
-    model = KMeans.train(data, k=1, maxIterations=1, runs=5)
+    model = KMeans.train(data, k = 1, maxIterations = 1, runs = 5)
     assertSetsEqual(model.clusterCenters, Array(Array(1.0, 3.0, 4.0)))
 
-    model = KMeans.train(data, k=1, maxIterations=1, runs=5)
+    model = KMeans.train(data, k = 1, maxIterations = 1, runs = 5)
     assertSetsEqual(model.clusterCenters, Array(Array(1.0, 3.0, 4.0)))
 
-    model = KMeans.train(data, k=1, maxIterations=1, runs=1, initializationMode=RANDOM)
+    model = KMeans.train(data, k = 1, maxIterations = 1, runs = 1, initializationMode = RANDOM)
     assertSetsEqual(model.clusterCenters, Array(Array(1.0, 3.0, 4.0)))
 
     model = KMeans.train(
-      data, k=1, maxIterations=1, runs=1, initializationMode=K_MEANS_PARALLEL)
+      data, k = 1, maxIterations = 1, runs = 1, initializationMode = K_MEANS_PARALLEL)
     assertSetsEqual(model.clusterCenters, Array(Array(1.0, 3.0, 4.0)))
   }
 
@@ -109,25 +111,25 @@ class KMeansSuite extends FunSuite with LocalSparkContext {
     // No matter how many runs or iterations we use, we should get one cluster,
     // centered at the mean of the points
 
-    var model = KMeans.train(data, k=1, maxIterations=1)
+    var model = KMeans.train(data, k = 1, maxIterations = 1)
     assertSetsEqual(model.clusterCenters, Array(Array(1.0, 3.0, 4.0)))
 
-    model = KMeans.train(data, k=1, maxIterations=2)
+    model = KMeans.train(data, k = 1, maxIterations = 2)
     assertSetsEqual(model.clusterCenters, Array(Array(1.0, 3.0, 4.0)))
 
-    model = KMeans.train(data, k=1, maxIterations=5)
+    model = KMeans.train(data, k = 1, maxIterations = 5)
     assertSetsEqual(model.clusterCenters, Array(Array(1.0, 3.0, 4.0)))
 
-    model = KMeans.train(data, k=1, maxIterations=1, runs=5)
+    model = KMeans.train(data, k = 1, maxIterations = 1, runs = 5)
     assertSetsEqual(model.clusterCenters, Array(Array(1.0, 3.0, 4.0)))
 
-    model = KMeans.train(data, k=1, maxIterations=1, runs=5)
+    model = KMeans.train(data, k = 1, maxIterations = 1, runs = 5)
     assertSetsEqual(model.clusterCenters, Array(Array(1.0, 3.0, 4.0)))
 
-    model = KMeans.train(data, k=1, maxIterations=1, runs=1, initializationMode=RANDOM)
+    model = KMeans.train(data, k = 1, maxIterations = 1, runs = 1, initializationMode = RANDOM)
     assertSetsEqual(model.clusterCenters, Array(Array(1.0, 3.0, 4.0)))
 
-    model = KMeans.train(data, k=1, maxIterations=1, runs=1, initializationMode=K_MEANS_PARALLEL)
+    model = KMeans.train(data, k = 1, maxIterations = 1, runs = 1, initializationMode = K_MEANS_PARALLEL)
     assertSetsEqual(model.clusterCenters, Array(Array(1.0, 3.0, 4.0)))
   }
 
@@ -141,19 +143,60 @@ class KMeansSuite extends FunSuite with LocalSparkContext {
     )
     val rdd = sc.parallelize(points)
 
-    // K-means|| initialization should place all clusters into distinct centers because
+    // K-means|| initialization should place all clusters into distinct points because
     // it will make at least five passes, and it will give non-zero probability to each
     // unselected point as long as it hasn't yet selected all of them
 
-    var model = KMeans.train(rdd, k=5, maxIterations=1)
+    var model = KMeans.train(rdd, k = 5, maxIterations = 1)
     assertSetsEqual(model.clusterCenters, points)
 
     // Iterations of Lloyd's should not change the answer either
-    model = KMeans.train(rdd, k=5, maxIterations=10)
+    model = KMeans.train(rdd, k = 5, maxIterations = 10)
     assertSetsEqual(model.clusterCenters, points)
 
     // Neither should more runs
-    model = KMeans.train(rdd, k=5, maxIterations=10, runs=5)
+    model = KMeans.train(rdd, k = 5, maxIterations = 10, runs = 5)
     assertSetsEqual(model.clusterCenters, points)
+  }
+
+  test("AI hw 5 k-means") {
+    val rawData = sc.textFile("/home/fathi/Courses/CSE5522-Kulis/homework/hw5/test_data.txt")
+    val data: RDD[Array[Double]] = rawData.map(x => {
+      val words = x.split(',')
+      Array(words(0).trim.toDouble, words(1).trim.toDouble)
+    })
+
+    val points = data.map(x => (x(0), x(1))).collect()
+    val (centers, assignments) = MeisamKmeans.MeisamKMeans(points, 3, 100)
+
+
+    println("Meisam's Implementation of k-means Algorithm means" + centers.mkString(","))
+    println("Meisam's Implementation of k-means Algorithm assignments" + assignments.map(_+1).mkString("\n"))
+  }
+
+  test("AI hw 5 EM Algorithm") {
+    val rawData = sc.textFile("/home/fathi/Courses/CSE5522-Kulis/homework/hw5/test_data.txt")
+    val data: RDD[Array[Double]] = rawData.map(x => {
+      val words = x.split(',')
+      Array(words(0).trim.toDouble, words(1).trim.toDouble)
+    })
+
+//    val points = data.map(x => (x(0), x(1))).collect()
+    val points = Array((0.0, 0.0), (1.0, 2.0), (3.0, 4.0), (5.0, 6.0))
+    val centers = EMAlgorithm.emAlgirithm(points, 3, 100)
+
+    println("Meisam's Implementation of EM Algorithm" + centers.mkString(","))
+  }
+
+  test("2d array flatten") {
+    val x: Array[Array[Int]] = Array(Array(1, 2)
+      , Array(3, 4)
+      , Array(5, 6)
+      , Array(7, 8)
+      , Array(9, 0)
+    )
+
+    println("sum is" +
+      x.view.flatten.sum)
   }
 }
